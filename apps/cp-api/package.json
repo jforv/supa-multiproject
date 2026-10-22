@@ -1,0 +1,36 @@
+{
+  "name": "@supa-mp/cp-api",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "start": "node dist/server.js",
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage"
+  },
+  "dependencies": {
+    "@hono/node-server": "^2.1.5",
+    "@hono/zod-validator": "^0.9.1",
+    "@node-rs/argon2": "^2.2.2",
+    "crypto-js": "^4.2.0",
+    "drizzle-orm": "^0.45.4",
+    "hono": "^4.13.13",
+    "jose": "^6.2.13",
+    "pg": "^8.23.1",
+    "pino": "^10.4.0",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/crypto-js": "^4.2.2",
+    "@types/node": "^26.6.5",
+    "@types/pg": "^8.23.1",
+    "@vitest/coverage-v8": "^5.0.5",
+    "drizzle-kit": "^0.31.11",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.5"
+  }
+}

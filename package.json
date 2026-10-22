@@ -1,0 +1,15 @@
+{
+  "name": "supa-multiproject",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Multi-project control plane that lets stock Supabase Studio manage many projects on shared infrastructure",
+  "packageManager": "pnpm@11.13.1",
+  "engines": {
+    "node": ">=22.15.0"
+  },
+  "scripts": {
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r test",
+    "lint": "pnpm -r lint"
+  }
+}
