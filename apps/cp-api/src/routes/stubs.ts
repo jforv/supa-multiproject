@@ -35,6 +35,30 @@ export const STUBS: readonly Stub[] = [
   { pattern: /^\/platform\/projects\/[^/]+\/config\/storage$/, body: NOT_SET_UP_STORAGE },
   { pattern: /^\/platform\/auth\/[^/]+\/config$/, body: {} },
   { pattern: /^\/v1\/projects\/[^/]+\/(api-keys|branches)$/, body: [] },
+  { pattern: /^\/v1\/projects\/[^/]+\/upgrade\/status$/, body: { databaseUpgradeStatus: null } },
+  { pattern: /^\/platform\/projects\/[^/]+\/load-balancers$/, body: [] },
+  {
+    pattern: /^\/platform\/database\/[^/]+\/backups$/,
+    body: {
+      backups: [],
+      physicalBackupData: {},
+      pitr_enabled: false,
+      region: 'local',
+      walg_enabled: false,
+    },
+  },
+  {
+    pattern: /^\/platform\/projects\/[^/]+\/billing\/addons$/,
+    body: { available_addons: [], selected_addons: [] },
+  },
+  { pattern: /^\/platform\/projects\/[^/]+\/analytics\/endpoints\//, body: { result: [] } },
+  {
+    methods: ['POST'],
+    pattern: /^\/platform\/organizations\/[^/]+\/available-versions$/,
+    body: {
+      available_versions: [{ postgres_engine: '17', release_channel: 'ga', version: '17.6.1.136' }],
+    },
+  },
   {
     methods: ['GET', 'POST'],
     pattern: /^\/v1\/projects\/[^/]+\/network-bans\/retrieve$/,

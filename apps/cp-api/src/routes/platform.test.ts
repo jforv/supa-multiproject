@@ -290,6 +290,26 @@ describe('stubs', () => {
       unread_count: 0,
     })
     expect(await json(await get('/v1/projects/alpha/api-keys'))).toEqual([])
+    expect(await json(await get('/v1/projects/alpha/upgrade/status'))).toEqual({
+      databaseUpgradeStatus: null,
+    })
+    expect(await json(await get('/platform/projects/alpha/load-balancers'))).toEqual([])
+    expect(await json(await get('/platform/database/alpha/backups'))).toMatchObject({
+      backups: [],
+      pitr_enabled: false,
+      walg_enabled: false,
+    })
+    expect(await json(await get('/platform/projects/alpha/billing/addons'))).toMatchObject({
+      available_addons: [],
+      selected_addons: [],
+    })
+    expect(
+      await json(await get('/platform/projects/alpha/analytics/endpoints/usage.api-counts'))
+    ).toEqual({ result: [] })
+    const versions = await get('/platform/organizations/default-org/available-versions', {
+      method: 'POST',
+    })
+    expect((await json(versions)).available_versions.length).toBeGreaterThan(0)
     // Studio reports each sign-in with a POST.
     const audit = await get('/platform/profile/audit-login', { method: 'POST' })
     expect(audit.status).toBe(200)

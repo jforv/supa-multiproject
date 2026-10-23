@@ -84,6 +84,61 @@ describe('POST /platform/projects', () => {
   })
 })
 
+describe('GET /platform/projects/available-regions', () => {
+  it('offers a single local region in the RegionsInfo shape, not a project lookup', async () => {
+    const { call } = await buildTestApp()
+
+    const res = await call(
+      'GET',
+      '/platform/projects/available-regions?cloud_provider=AWS&organization_slug=default-org'
+    )
+    const body = await json(res)
+
+    expect(res.status).toBe(200)
+    expect(body.all.smartGroup).toEqual([{ code: 'americas', name: 'Local', type: 'smartGroup' }])
+    expect(body.all.specific[0]).toMatchObject({ code: 'us-east-1', type: 'specific' })
+    expect(body.recommendations.smartGroup).toMatchObject({ code: 'americas' })
+    expect(body.recommendations.specific).toHaveLength(1)
+  })
+})
+
+describe('health endpoints', () => {
+  it('reports the database as COMING_UP, then ACTIVE_HEALTHY, for the requested services', async () => {
+    const { call, provisioner } = await buildTestApp()
+    const { ref } = await json(await call('POST', '/platform/projects', NEW_PROJECT))
+    const url = `/v1/projects/${ref}/health?services=auth,realtime,rest,storage,db`
+
+    const early = await json(await call('GET', url))
+    await provisioner.runOnce()
+    const late = await json(await call('GET', url))
+
+    expect(early).toEqual([{ name: 'db', healthy: false, status: 'COMING_UP' }])
+    expect(late).toEqual([{ name: 'db', healthy: true, status: 'ACTIVE_HEALTHY' }])
+  })
+
+  it('reports UNHEALTHY for a failed project and 404s an unknown one', async () => {
+    const { call, provisioner } = await buildTestApp({ dbFailures: 99 })
+    const { ref } = await json(await call('POST', '/platform/projects', NEW_PROJECT))
+    for (let i = 1; i <= 5; i++) await provisioner.runOnce(new Date(Date.now() + i * 3_600_000))
+
+    const failed = await json(await call('GET', `/v1/projects/${ref}/health?services=db`))
+    const missing = await call('GET', '/v1/projects/nope/health?services=db')
+
+    expect(failed).toEqual([{ name: 'db', healthy: false, status: 'UNHEALTHY' }])
+    expect(missing.status).toBe(404)
+  })
+
+  it('lists database statuses with the project status', async () => {
+    const { call, provisioner } = await buildTestApp()
+    const { ref } = await json(await call('POST', '/platform/projects', NEW_PROJECT))
+    await provisioner.runOnce()
+
+    const body = await json(await call('GET', `/platform/projects/${ref}/databases-statuses`))
+
+    expect(body).toEqual([{ identifier: ref, status: 'ACTIVE_HEALTHY' }])
+  })
+})
+
 describe('project lifecycle through the API', () => {
   it('goes COMING_UP to ACTIVE_HEALTHY as the provisioner runs', async () => {
     const { call, provisioner, dbCalls } = await buildTestApp()
