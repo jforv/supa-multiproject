@@ -41,6 +41,14 @@ describe.skipIf(!url)('postgres repos', () => {
     expect(await admins.findByEmail('nobody@x.io')).toBeNull()
   })
 
+  it('lists enabled admins only, oldest first', async () => {
+    await admins.insert({ id: randomUUID(), email: 'a@x.io', passwordHash: 'h', disabled: false })
+    await admins.insert({ id: randomUUID(), email: 'off@x.io', passwordHash: 'h', disabled: true })
+    await admins.insert({ id: randomUUID(), email: 'b@x.io', passwordHash: 'h', disabled: false })
+
+    expect((await admins.listEnabled()).map((a) => a.email)).toEqual(['a@x.io', 'b@x.io'])
+  })
+
   it('markUsed succeeds exactly once', async () => {
     const adminId = randomUUID()
     await admins.insert({ id: adminId, email: 'a@x.io', passwordHash: 'h', disabled: false })

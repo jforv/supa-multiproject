@@ -1,4 +1,4 @@
-import { and, count, eq, isNull } from 'drizzle-orm'
+import { and, asc, count, eq, isNull } from 'drizzle-orm'
 
 import type { AdminRepo, RefreshRepo } from '../auth/ports.js'
 import type { Db } from './client.js'
@@ -20,6 +20,9 @@ export function createAdminRepo(db: Db): AdminRepo {
       const [row] = await db.select(pick).from(admins).where(eq(admins.id, id))
       return row ?? null
     },
+    listEnabled: () =>
+      db.select(pick).from(admins).where(eq(admins.disabled, false)).orderBy(asc(admins.createdAt)),
+
     async count() {
       const [row] = await db.select({ n: count() }).from(admins)
       return row?.n ?? 0

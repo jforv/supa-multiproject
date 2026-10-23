@@ -218,6 +218,24 @@ describe('projects', () => {
   })
 })
 
+describe('project members', () => {
+  it('lists every enabled admin: there is no per-project access control', async () => {
+    const { get } = await setup()
+
+    const body = await json(await get('/platform/projects/alpha/members'))
+
+    expect(body).toEqual({
+      members: [{ primary_email: 'ada@x.io', user_id: 'a1', username: 'ada' }],
+    })
+  })
+
+  it('404s members of an unknown project', async () => {
+    const { get } = await setup()
+
+    expect((await get('/platform/projects/nope/members')).status).toBe(404)
+  })
+})
+
 describe('pg-meta passthrough', () => {
   it('forwards to postgres-meta with the project connection encrypted in a header', async () => {
     const { get, calls } = await setup()
@@ -290,6 +308,9 @@ describe('stubs', () => {
       unread_count: 0,
     })
     expect(await json(await get('/v1/projects/alpha/api-keys'))).toEqual([])
+    expect(await json(await get('/platform/projects/alpha/service-versions'))).toEqual({
+      'supabase-postgres': '17.6.1.136',
+    })
     expect(await json(await get('/v1/projects/alpha/upgrade/status'))).toEqual({
       databaseUpgradeStatus: null,
     })

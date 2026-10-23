@@ -8,6 +8,7 @@ export function createMemoryAdminRepo(seed: readonly AdminRecord[] = []): AdminR
       [...admins.values()].find((a) => a.email === email.toLowerCase()) ?? null,
     findById: async (id) => admins.get(id) ?? null,
     count: async () => admins.size,
+    listEnabled: async () => [...admins.values()].filter((a) => !a.disabled),
     insert: async (admin) => {
       admins.set(admin.id, admin)
     },

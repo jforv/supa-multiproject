@@ -9,6 +9,8 @@ export interface AdminRepo {
   findByEmail(email: string): Promise<AdminRecord | null>
   findById(id: string): Promise<AdminRecord | null>
   count(): Promise<number>
+  /** Admins that can sign in, oldest first. */
+  listEnabled(): Promise<AdminRecord[]>
   insert(admin: AdminRecord): Promise<void>
 }
 

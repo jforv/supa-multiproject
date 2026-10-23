@@ -121,6 +121,16 @@ export function platformRoutes(deps: AppDeps & { platform: PlatformDeps }) {
     return c.json(projectDetail(project, secrets, ctx))
   })
 
+  routes.get('/platform/projects/:ref/members', async (c) => {
+    await load(c.req.param('ref')) // 404s an unknown project
+    const members = (await deps.admins.listEnabled()).map((a) => ({
+      primary_email: a.email,
+      user_id: a.id,
+      username: a.email.split('@')[0],
+    }))
+    return c.json({ members })
+  })
+
   routes.get('/platform/projects/:ref/databases', async (c) => {
     const { project, secrets } = await load(c.req.param('ref'))
     return c.json([databaseRow(project, secrets, ctx)])

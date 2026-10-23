@@ -37,6 +37,11 @@ export const STUBS: readonly Stub[] = [
   { pattern: /^\/v1\/projects\/[^/]+\/(api-keys|branches)$/, body: [] },
   { pattern: /^\/v1\/projects\/[^/]+\/upgrade\/status$/, body: { databaseUpgradeStatus: null } },
   { pattern: /^\/platform\/projects\/[^/]+\/load-balancers$/, body: [] },
+  // Matches the supabase/postgres image tag pinned in deploy/compose.yml.
+  {
+    pattern: /^\/platform\/projects\/[^/]+\/service-versions$/,
+    body: { 'supabase-postgres': '17.6.1.136' },
+  },
   {
     pattern: /^\/platform\/database\/[^/]+\/backups$/,
     body: {
