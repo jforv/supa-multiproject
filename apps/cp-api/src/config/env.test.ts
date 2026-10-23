@@ -23,6 +23,24 @@ describe('loadEnv', () => {
     expect(env.allowedOrigins).toEqual(['http://localhost:8082', 'http://studio.example.test:8082'])
     expect(env.masterKey.length).toBe(32)
     expect(env.bootstrapAdmin).toBeUndefined()
+    expect(env.projectDbHost).toBe('127.0.0.1')
+    expect(env.projectDbPort).toBe(5432)
+    expect(env.projectApiDomain).toBe('localhost:8000')
+  })
+
+  it('reads the project database target and API domain', () => {
+    const env = loadEnv({
+      ...validSource,
+      CP_PROJECT_DB_HOST: 'db',
+      CP_PROJECT_DB_PORT: '6543',
+      CP_PROJECT_API_DOMAIN: 'supa.lan',
+    })
+
+    expect(env).toMatchObject({
+      projectDbHost: 'db',
+      projectDbPort: 6543,
+      projectApiDomain: 'supa.lan',
+    })
   })
 
   it('lists every missing variable by name', () => {

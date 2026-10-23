@@ -4,6 +4,7 @@ import type { AuthService } from '../auth/authService.js'
 import type { AdminRepo } from '../auth/ports.js'
 import type { AccessClaims, TokenService } from '../auth/tokens.js'
 import { authRoutes } from '../routes/auth.js'
+import { platformRoutes, type PlatformDeps } from '../routes/platform.js'
 import { ApiError, errorResponse } from './errors.js'
 
 export interface AppDeps {
@@ -11,6 +12,7 @@ export interface AppDeps {
   readonly auth: AuthService
   readonly tokens: TokenService
   readonly admins: AdminRepo
+  readonly platform?: PlatformDeps
 }
 
 export type AppEnv = { Variables: { admin: AccessClaims } }
@@ -44,6 +46,7 @@ export function createApp(deps: AppDeps) {
   })
 
   app.route('/auth', authRoutes(deps))
+  if (deps.platform) app.route('/', platformRoutes({ ...deps, platform: deps.platform }))
 
   app.notFound((c) => c.json({ message: 'Not found' }, 404))
   app.onError((err, c) => {

@@ -5,6 +5,7 @@ const MIN_JWT_SECRET_LENGTH = 32
 const MIN_ADMIN_PASSWORD_LENGTH = 12
 const DEFAULT_PORT = 8100
 const MAX_PORT = 65535
+const DEFAULT_PG_PORT = 5432
 
 export class EnvError extends Error {
   constructor(message: string) {
@@ -27,6 +28,9 @@ export interface Env {
   readonly allowedOrigins: readonly string[]
   readonly pgMetaUrl: string
   readonly pgMetaCryptoKey: string
+  readonly projectDbHost: string
+  readonly projectDbPort: number
+  readonly projectApiDomain: string
   readonly orgSlug: string
   readonly orgName: string
   readonly bootstrapAdmin?: BootstrapAdmin
@@ -56,6 +60,9 @@ const schema = z
       .refine((origins) => origins.length > 0, 'must list at least one origin'),
     CP_PG_META_URL: z.string().url(),
     CP_PG_META_CRYPTO_KEY: z.string().min(1),
+    CP_PROJECT_DB_HOST: z.string().min(1).default('127.0.0.1'),
+    CP_PROJECT_DB_PORT: z.coerce.number().int().min(1).max(MAX_PORT).default(DEFAULT_PG_PORT),
+    CP_PROJECT_API_DOMAIN: z.string().min(1).default('localhost:8000'),
     CP_ORG_SLUG: z.string().min(1).default('default-org'),
     CP_ORG_NAME: z.string().min(1).default('Default Org'),
     CP_BOOTSTRAP_ADMIN_EMAIL: z.string().email().optional(),
@@ -105,6 +112,9 @@ export function loadEnv(source: Readonly<Record<string, string | undefined>>): E
     allowedOrigins: raw.CP_ALLOWED_ORIGINS,
     pgMetaUrl: raw.CP_PG_META_URL,
     pgMetaCryptoKey: raw.CP_PG_META_CRYPTO_KEY,
+    projectDbHost: raw.CP_PROJECT_DB_HOST,
+    projectDbPort: raw.CP_PROJECT_DB_PORT,
+    projectApiDomain: raw.CP_PROJECT_API_DOMAIN,
     orgSlug: raw.CP_ORG_SLUG,
     orgName: raw.CP_ORG_NAME,
     ...(bootstrapAdmin ? { bootstrapAdmin } : {}),

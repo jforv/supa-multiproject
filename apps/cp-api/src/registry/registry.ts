@@ -26,6 +26,8 @@ export interface RegisterInput {
   readonly name: string
   readonly orgSlug: string
   readonly dbName: string
+  /** Defaults to COMING_UP; seeded projects that already exist pass ACTIVE_HEALTHY. */
+  readonly status?: string
 }
 
 export interface ProjectRegistryDeps {
@@ -45,8 +47,11 @@ export function createProjectRegistry({ repo, secretBox }: ProjectRegistryDeps) 
       }
       return repo.insert(
         {
-          ...input,
-          status: 'COMING_UP',
+          ref: input.ref,
+          name: input.name,
+          orgSlug: input.orgSlug,
+          dbName: input.dbName,
+          status: input.status ?? 'COMING_UP',
           desiredState: 'active',
           version: 1,
           createdAt: now,
