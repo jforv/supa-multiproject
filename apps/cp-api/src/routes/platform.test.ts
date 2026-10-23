@@ -5,6 +5,7 @@ import { createAuthService } from '../auth/authService.js'
 import { createMemoryAdminRepo, createMemoryRefreshRepo } from '../auth/memoryRepos.js'
 import { hashPassword } from '../auth/passwords.js'
 import { createTokenService } from '../auth/tokens.js'
+import { createMemoryContentRepo } from '../content/memoryRepo.js'
 import { createSecretBox } from '../crypto/secretBox.js'
 import { createApp } from '../http/app.js'
 import { createMemoryProjectRepo } from '../registry/memoryRepo.js'
@@ -68,6 +69,7 @@ async function setup(metaReply: () => Response = () => Response.json([{ ok: true
     admins,
     platform: {
       registry,
+      content: createMemoryContentRepo(),
       org: { slug: 'default-org', name: 'Default Org' },
       projectDb: { host: '127.0.0.1', port: 5441 },
       apiDomain: 'localhost:8000',
@@ -334,7 +336,6 @@ describe('stubs', () => {
     // Studio reports each sign-in with a POST.
     const audit = await get('/platform/profile/audit-login', { method: 'POST' })
     expect(audit.status).toBe(200)
-    expect(await json(await get('/platform/projects/alpha/content'))).toEqual({ data: [] })
   })
 
   it('still 404s with a message for endpoints nobody implemented', async () => {

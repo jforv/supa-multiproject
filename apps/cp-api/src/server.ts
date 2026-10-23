@@ -27,6 +27,7 @@ async function main() {
     admins: ctx.admins,
     platform: {
       registry: ctx.registry,
+      content: ctx.content,
       org: { slug: env.orgSlug, name: env.orgName },
       projectDb: { host: env.projectDbHost, port: env.projectDbPort },
       apiDomain: env.projectApiDomain,

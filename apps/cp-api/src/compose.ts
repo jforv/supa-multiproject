@@ -3,6 +3,7 @@ import pg from 'pg'
 import { createAuthService } from './auth/authService.js'
 import { createTokenService } from './auth/tokens.js'
 import type { Env } from './config/env.js'
+import { createContentRepo } from './content/pgRepo.js'
 import { createSecretBox } from './crypto/secretBox.js'
 import { createDb } from './db/client.js'
 import { createJobRepo } from './db/jobRepo.js'
@@ -52,7 +53,9 @@ export function buildContext(env: Env) {
     password: decodeURIComponent(control.password),
   }
 
-  return { pool, adminPool, admins, tokens, auth, registry, provisioner, newProjectDb }
+  const content = createContentRepo(db)
+
+  return { pool, adminPool, admins, tokens, auth, registry, content, provisioner, newProjectDb }
 }
 
 export type Context = ReturnType<typeof buildContext>

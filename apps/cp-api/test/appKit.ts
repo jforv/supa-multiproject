@@ -2,6 +2,7 @@ import { createAuthService } from '../src/auth/authService.js'
 import { createMemoryAdminRepo, createMemoryRefreshRepo } from '../src/auth/memoryRepos.js'
 import { hashPassword } from '../src/auth/passwords.js'
 import { createTokenService } from '../src/auth/tokens.js'
+import { createMemoryContentRepo } from '../src/content/memoryRepo.js'
 import { createSecretBox } from '../src/crypto/secretBox.js'
 import { createApp } from '../src/http/app.js'
 import { createMemoryJobRepo } from '../src/provisioner/memoryJobRepo.js'
@@ -66,6 +67,7 @@ export async function buildTestApp(
     admins,
     platform: {
       registry,
+      content: createMemoryContentRepo(),
       org: { slug: 'default-org', name: 'Default Org' },
       projectDb: { host: '127.0.0.1', port: 5441 },
       apiDomain: 'localhost:8000',

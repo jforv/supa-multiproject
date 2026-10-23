@@ -1,10 +1,13 @@
 import { Hono, type Context } from 'hono'
 
+import type { ContentRepo } from '../content/ports.js'
+import { numericId } from '../content/wire.js'
 import type { AppDeps, AppEnv } from '../http/app.js'
 import { ApiError } from '../http/errors.js'
 import { requireAdmin } from '../http/requireAdmin.js'
 import type { ProjectRecord } from '../registry/ports.js'
 import type { ProjectRegistry, StoredSecrets } from '../registry/registry.js'
+import { contentRoutes } from './content.js'
 import { proxyPgMeta } from './pgMetaProxy.js'
 import {
   databaseRow,
@@ -20,6 +23,7 @@ import { findStub } from './stubs.js'
 
 export interface PlatformDeps {
   readonly registry: ProjectRegistry
+  readonly content: ContentRepo
   readonly org: { readonly slug: string; readonly name: string }
   readonly projectDb: { readonly host: string; readonly port: number }
   readonly apiDomain: string
@@ -68,12 +72,16 @@ export function platformRoutes(deps: AppDeps & { platform: PlatformDeps }) {
   }
 
   routes.route('/', lifecycleRoutes({ registry, ctx, newProjectDb: deps.platform.newProjectDb }))
+  routes.route(
+    '/',
+    contentRoutes({ content: deps.platform.content, admins: deps.admins, registry })
+  )
 
   routes.get('/platform/profile', async (c) => {
     const claims = c.get('admin')
     const email = (await deps.admins.findById(claims.sub))?.email ?? claims.email
     return c.json({
-      id: 1,
+      id: numericId(claims.sub),
       gotrue_id: claims.sub,
       primary_email: email,
       username: email.split('@')[0],

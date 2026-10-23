@@ -69,21 +69,6 @@ export const STUBS: readonly Stub[] = [
     pattern: /^\/v1\/projects\/[^/]+\/network-bans\/retrieve$/,
     body: { banned_ipv4_addresses: [] },
   },
-  // SQL snippets: real storage arrives with the content milestone; these keep the editor usable.
-  { pattern: /^\/platform\/projects\/[^/]+\/content$/, body: { data: [] } },
-  {
-    pattern: /^\/platform\/projects\/[^/]+\/content\/folders/,
-    body: { data: { folders: [], contents: [] } },
-  },
-  {
-    pattern: /^\/platform\/projects\/[^/]+\/content\/count/,
-    body: { shared: 0, favorites: 0, private: 0 },
-  },
-  {
-    methods: ['PUT', 'POST'],
-    pattern: /^\/platform\/projects\/[^/]+\/content$/,
-    respond: (c) => c.req.json().catch(() => ({})),
-  },
 ]
 
 const DEFAULT_METHODS = ['GET']
