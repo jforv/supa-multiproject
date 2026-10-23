@@ -18,7 +18,7 @@ const NOT_SET_UP_STORAGE = {
 }
 
 export const STUBS: readonly Stub[] = [
-  { pattern: /^\/platform\/profile\/audit-login$/, body: {} },
+  { methods: ['GET', 'POST'], pattern: /^\/platform\/profile\/audit-login$/, body: {} },
   { pattern: /^\/platform\/notifications$/, body: [] },
   {
     pattern: /^\/platform\/notifications\/summary$/,

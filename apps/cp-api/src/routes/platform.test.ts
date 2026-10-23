@@ -289,6 +289,9 @@ describe('stubs', () => {
       unread_count: 0,
     })
     expect(await json(await get('/v1/projects/alpha/api-keys'))).toEqual([])
+    // Studio reports each sign-in with a POST.
+    const audit = await get('/platform/profile/audit-login', { method: 'POST' })
+    expect(audit.status).toBe(200)
     expect(await json(await get('/platform/projects/alpha/content'))).toEqual({ data: [] })
   })
 
