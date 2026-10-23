@@ -44,6 +44,7 @@ Without `CP_TEST_DATABASE_URL` the Postgres integration tests are skipped. The r
 
 ## Known limits
 
-- Projects share the cluster's `postgres` role (per-project roles come with M3).
+- Projects share the cluster's `postgres` role. Per-project roles are proven to work with
+  GoTrue, Storage and PostgREST ([spike](docs/m3-role-spike.md)); wiring them in is M3.
 - The database password entered in Studio's "New project" form is ignored.
 - Private snippets and folders belong to one admin; there is no per-project access control.
