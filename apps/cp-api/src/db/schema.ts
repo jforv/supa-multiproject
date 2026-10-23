@@ -22,6 +22,7 @@ export const refreshTokens = pgTable('refresh_tokens', {
 })
 
 export const projects = pgTable('projects', {
+  id: integer('id').notNull().unique().generatedAlwaysAsIdentity(),
   ref: text('ref').primaryKey(),
   name: text('name').notNull(),
   orgSlug: text('org_slug').notNull(),
