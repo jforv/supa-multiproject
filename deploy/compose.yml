@@ -1,0 +1,77 @@
+name: supa-multiproject
+
+# Run from this directory after `./init-env.sh <public-host> <admin-email>`:
+#   docker compose up -d --build
+services:
+  db:
+    image: supabase/postgres:17.6.1.136
+    restart: unless-stopped
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?run init-env.sh first}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      - ./init-sql/10-cp.sql:/docker-entrypoint-initdb.d/zz-10-cp.sql:ro
+    healthcheck:
+      test: ['CMD', 'pg_isready', '-U', 'postgres', '-h', 'localhost']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  pg-meta:
+    image: supabase/postgres-meta:v0.100.0
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PG_META_PORT: 8080
+      PG_META_DB_HOST: db
+      PG_META_DB_PASSWORD: ${POSTGRES_PASSWORD}
+      CRYPTO_KEY: ${PG_META_CRYPTO_KEY}
+
+  cp-api:
+    build:
+      context: ..
+      dockerfile: apps/cp-api/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      pg-meta:
+        condition: service_started
+    environment:
+      CP_PORT: 8101
+      CP_DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD}@db:5432/cp
+      CP_MASTER_KEY: ${CP_MASTER_KEY}
+      CP_JWT_SECRET: ${CP_JWT_SECRET}
+      CP_ALLOWED_ORIGINS: http://${PUBLIC_HOST}:${STUDIO_PORT:-8082}
+      CP_PG_META_URL: http://pg-meta:8080
+      CP_PG_META_CRYPTO_KEY: ${PG_META_CRYPTO_KEY}
+      CP_PROJECT_DB_HOST: db
+      CP_PROJECT_DB_PORT: 5432
+      CP_PROJECT_API_DOMAIN: ${PUBLIC_HOST}:8000
+      CP_BOOTSTRAP_ADMIN_EMAIL: ${CP_BOOTSTRAP_ADMIN_EMAIL}
+      CP_BOOTSTRAP_ADMIN_PASSWORD: ${CP_BOOTSTRAP_ADMIN_PASSWORD}
+    ports:
+      - '${CP_PORT:-8101}:8101'
+
+  studio:
+    build:
+      context: ..
+      dockerfile: studio/Dockerfile
+      args:
+        SUPABASE_SHA: ${SUPABASE_SHA:-d78685a364b338c68c8557e223fdf02e86a8a6a7}
+        NEXT_PUBLIC_API_URL: http://${PUBLIC_HOST}:${CP_PORT:-8101}
+        NEXT_PUBLIC_GOTRUE_URL: http://${PUBLIC_HOST}:${CP_PORT:-8101}/auth
+        NEXT_PUBLIC_SITE_URL: http://${PUBLIC_HOST}:${STUDIO_PORT:-8082}
+    restart: unless-stopped
+    depends_on:
+      - cp-api
+    environment:
+      PLATFORM_PG_META_URL: http://pg-meta:8080
+      PG_META_CRYPTO_KEY: ${PG_META_CRYPTO_KEY}
+    ports:
+      - '${STUDIO_PORT:-8082}:3000'
+
+volumes:
+  db-data:
