@@ -10,6 +10,10 @@
   "scripts": {
     "typecheck": "pnpm -r typecheck",
     "test": "pnpm -r test",
-    "lint": "pnpm -r lint"
+    "lint": "eslint apps"
+  },
+  "devDependencies": {
+    "eslint": "^10.13.0",
+    "typescript-eslint": "^8.72.0"
   }
 }
