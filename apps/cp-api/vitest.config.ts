@@ -7,7 +7,8 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       include: ['src/**/*.ts'],
-      exclude: ['src/**/*.test.ts', 'src/server.ts'],
+      // Wiring only; exercised by the compose smoke test instead of unit tests.
+      exclude: ['src/**/*.test.ts', 'src/server.ts', 'src/compose.ts', 'src/cli/**'],
       thresholds: { lines: 80, functions: 80, branches: 80, statements: 80 },
     },
   },
