@@ -71,6 +71,7 @@ async function setup(metaReply: () => Response = () => Response.json([{ ok: true
       org: { slug: 'default-org', name: 'Default Org' },
       projectDb: { host: '127.0.0.1', port: 5441 },
       apiDomain: 'localhost:8000',
+      newProjectDb: { user: 'postgres', password: 'db-password-marker' },
       pgMeta: {
         url: 'http://meta:8080',
         cryptoKey: META_KEY,

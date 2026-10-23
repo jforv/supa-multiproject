@@ -28,6 +28,8 @@ export interface RegisterInput {
   readonly dbName: string
   /** Defaults to COMING_UP; seeded projects that already exist pass ACTIVE_HEALTHY. */
   readonly status?: string
+  /** Queue a create job so the provisioner builds the project's database. */
+  readonly provision?: boolean
 }
 
 export interface ProjectRegistryDeps {
@@ -57,12 +59,17 @@ export function createProjectRegistry({ repo, secretBox }: ProjectRegistryDeps) 
           createdAt: now,
           updatedAt: now,
         },
-        secretBox.encrypt(JSON.stringify(secrets))
+        secretBox.encrypt(JSON.stringify(secrets)),
+        input.provision ? 'create' : undefined
       )
     },
 
     list: () => repo.list(),
     get: (ref: string) => repo.findByRef(ref),
+    setStatus: (ref: string, status: string, now: Date = new Date()) =>
+      repo.setStatus(ref, status, now),
+    remove: (ref: string) => repo.remove(ref),
+    requestDelete: (ref: string, now: Date = new Date()) => repo.requestDelete(ref, now),
 
     async getSecrets(ref: string): Promise<StoredSecrets | null> {
       const enc = await repo.getSecretsEnc(ref)

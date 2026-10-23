@@ -6,6 +6,7 @@ import { buildContext } from './compose.js'
 import { loadEnv } from './config/env.js'
 import { migrate } from './db/migrate.js'
 import { createApp } from './http/app.js'
+import { startWorker } from './provisioner/worker.js'
 
 const log = pino({ redact: ['*.password', '*.secret', 'req.headers.authorization'] })
 
@@ -29,6 +30,7 @@ async function main() {
       org: { slug: env.orgSlug, name: env.orgName },
       projectDb: { host: env.projectDbHost, port: env.projectDbPort },
       apiDomain: env.projectApiDomain,
+      newProjectDb: ctx.newProjectDb,
       pgMeta: { url: env.pgMetaUrl, cryptoKey: env.pgMetaCryptoKey },
     },
   })
@@ -37,9 +39,21 @@ async function main() {
     log.info({ port: info.port }, 'cp-api listening')
   )
 
+  // A job claimed by a worker that dies is picked up again once its lease expires.
+  const worker = startWorker(ctx.provisioner, {
+    onError: (err) =>
+      log.error({ err: err instanceof Error ? err.message : String(err) }, 'job failed'),
+  })
+
   const shutdown = (signal: string) => {
     log.info({ signal }, 'shutting down')
-    server.close(() => void ctx.pool.end().then(() => process.exit(0)))
+    server.close(
+      () =>
+        void worker
+          .stop()
+          .then(() => Promise.all([ctx.pool.end(), ctx.adminPool.end()]))
+          .then(() => process.exit(0))
+    )
   }
   process.on('SIGTERM', () => shutdown('SIGTERM'))
   process.on('SIGINT', () => shutdown('SIGINT'))

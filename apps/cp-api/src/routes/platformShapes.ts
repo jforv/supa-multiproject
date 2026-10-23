@@ -57,6 +57,31 @@ export const projectDetail = (p: ProjectRecord, secrets: StoredSecrets, ctx: Sha
   infra_compute_size: 'micro',
 })
 
+/** The 201 body for project creation: the API keys are shown here, as on the hosted platform. */
+export const createdProjectBody = (
+  p: ProjectRecord,
+  secrets: StoredSecrets,
+  ctx: ShapeContext
+) => ({
+  anon_key: secrets.anonKey,
+  service_key: secrets.serviceKey,
+  cloud_provider: 'localhost',
+  endpoint: `${p.ref}.${ctx.apiDomain}`,
+  id: p.id,
+  infra_compute_size: 'micro',
+  inserted_at: insertedAt(p),
+  is_branch_enabled: false,
+  is_physical_backups_enabled: false,
+  name: p.name,
+  organization_id: 1,
+  organization_slug: p.orgSlug,
+  preview_branch_refs: [],
+  ref: p.ref,
+  region: REGION,
+  status: p.status,
+  subscription_id: null,
+})
+
 export const orgProjectRow = (p: ProjectRecord) => ({
   cloud_provider: 'localhost',
   databases: [

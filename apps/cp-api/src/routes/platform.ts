@@ -15,6 +15,7 @@ import {
   projectSettings,
   type ShapeContext,
 } from './platformShapes.js'
+import { lifecycleRoutes } from './projectLifecycle.js'
 import { findStub } from './stubs.js'
 
 export interface PlatformDeps {
@@ -22,6 +23,8 @@ export interface PlatformDeps {
   readonly org: { readonly slug: string; readonly name: string }
   readonly projectDb: { readonly host: string; readonly port: number }
   readonly apiDomain: string
+  /** Credentials stored for newly created projects. */
+  readonly newProjectDb: { readonly user: string; readonly password: string }
   readonly pgMeta: {
     readonly url: string
     readonly cryptoKey: string
@@ -63,6 +66,8 @@ export function platformRoutes(deps: AppDeps & { platform: PlatformDeps }) {
       })
     )
   }
+
+  routes.route('/', lifecycleRoutes({ registry, ctx, newProjectDb: deps.platform.newProjectDb }))
 
   routes.get('/platform/profile', async (c) => {
     const claims = c.get('admin')
@@ -129,6 +134,9 @@ export function platformRoutes(deps: AppDeps & { platform: PlatformDeps }) {
   routes.all('/platform/pg-meta/:ref/*', async (c) => {
     const ref = c.req.param('ref')
     const { project, secrets } = await load(ref)
+    if (project.status !== 'ACTIVE_HEALTHY') {
+      throw new ApiError(409, `Project "${ref}" is not active (status ${project.status})`)
+    }
     const prefix = `/platform/pg-meta/${ref}`
     return proxyPgMeta(c, c.req.path.slice(prefix.length), {
       url: pgMeta.url,

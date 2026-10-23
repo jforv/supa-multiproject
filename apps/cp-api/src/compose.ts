@@ -1,10 +1,15 @@
+import pg from 'pg'
+
 import { createAuthService } from './auth/authService.js'
 import { createTokenService } from './auth/tokens.js'
 import type { Env } from './config/env.js'
 import { createSecretBox } from './crypto/secretBox.js'
 import { createDb } from './db/client.js'
+import { createJobRepo } from './db/jobRepo.js'
 import { createProjectRepo } from './db/projectRepo.js'
 import { createAdminRepo, createRefreshRepo } from './db/repos.js'
+import { createPgDbAdmin } from './provisioner/pgDbAdmin.js'
+import { createProvisioner } from './provisioner/provisioner.js'
 import { createProjectRegistry } from './registry/registry.js'
 
 const ACCESS_TTL_SECONDS = 3600
@@ -30,7 +35,24 @@ export function buildContext(env: Env) {
     keys: { [env.masterKeyId]: env.masterKey },
   })
   const registry = createProjectRegistry({ repo: createProjectRepo(db), secretBox })
-  return { pool, admins, tokens, auth, registry }
+
+  // CREATE/DROP DATABASE must run from outside the target: use the maintenance database with
+  // the same server credentials as the control DB. Projects reuse those credentials for now.
+  const control = new URL(env.databaseUrl)
+  const maintenanceUrl = new URL(env.databaseUrl)
+  maintenanceUrl.pathname = '/postgres'
+  const adminPool = new pg.Pool({ connectionString: maintenanceUrl.toString(), max: 2 })
+  const provisioner = createProvisioner({
+    jobs: createJobRepo(db),
+    registry,
+    dbAdmin: createPgDbAdmin(adminPool),
+  })
+  const newProjectDb = {
+    user: decodeURIComponent(control.username),
+    password: decodeURIComponent(control.password),
+  }
+
+  return { pool, adminPool, admins, tokens, auth, registry, provisioner, newProjectDb }
 }
 
 export type Context = ReturnType<typeof buildContext>
