@@ -8,3 +8,7 @@ overrides:
 
 allowBuilds:
   esbuild: true
+  # dockerode pulls these in for SSH-based Docker connections, which we do not use.
+  cpu-features: false
+  protobufjs: false
+  ssh2: false

@@ -23,6 +23,8 @@ jobs:
     env:
       # Throwaway database for the integration tests (the role may CREATE DATABASE).
       CP_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/cp_test
+      # Runs the container runtime contract against the runner's Docker daemon.
+      CP_TEST_DOCKER: '1'
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
