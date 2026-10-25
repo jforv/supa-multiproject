@@ -13,6 +13,8 @@ const LABEL_ROLE = 'cp.role'
 const LABEL_HASH = 'cp.hash'
 const BYTES_PER_MB = 1024 * 1024
 const STOP_GRACE_SECONDS = 5
+const STOP_WAIT_MS = 10_000
+const STOP_POLL_MS = 100
 const HTTP_NOT_FOUND = 404
 const HTTP_NOT_MODIFIED = 304
 
@@ -43,6 +45,17 @@ export function createDockerRuntime(
     } catch (err) {
       if (statusOf(err) === HTTP_NOT_FOUND) return null
       throw err
+    }
+  }
+
+  /** The daemon can report a container as running for a moment after `stop` returns. */
+  async function waitStopped(name: string): Promise<void> {
+    const deadline = Date.now() + STOP_WAIT_MS
+    for (;;) {
+      const current = await inspect(name)
+      if (!current?.State.Running) return
+      if (Date.now() > deadline) throw new Error(`Container ${name} is still running after stop`)
+      await new Promise((resolve) => setTimeout(resolve, STOP_POLL_MS))
     }
   }
 
@@ -93,10 +106,12 @@ export function createDockerRuntime(
       await create(spec, hash)
     },
 
-    stop: (name) =>
-      tolerate([HTTP_NOT_FOUND, HTTP_NOT_MODIFIED], () =>
+    async stop(name) {
+      await tolerate([HTTP_NOT_FOUND, HTTP_NOT_MODIFIED], () =>
         docker.getContainer(name).stop({ t: STOP_GRACE_SECONDS })
-      ),
+      )
+      await waitStopped(name)
+    },
 
     remove,
 
