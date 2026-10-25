@@ -5,6 +5,8 @@ packages:
 # drizzle-kit pulls esbuild 0.18, which has a dev-server advisory fixed in 0.25.
 overrides:
   'esbuild@<0.25.0': '0.25.12'
+  # dockerode pins uuid 10, which lacks a buffer bounds check fixed in 11.1.1.
+  'uuid@<11.1.1': '11.1.1'
 
 allowBuilds:
   esbuild: true

@@ -41,7 +41,8 @@ describe('specHash', () => {
 })
 
 describe.each(suites)('%s', (_label, make, enabled) => {
-  describe.skipIf(!enabled)('contract', () => {
+  // A cold image pull on a fresh CI runner takes longer than vitest's default 5s.
+  describe.skipIf(!enabled)('contract', { timeout: 60_000 }, () => {
     const runtime = make()
     const created: string[] = []
     const ensure = async (s: ContainerSpec) => {
