@@ -13,6 +13,7 @@ const LABEL_ROLE = 'cp.role'
 const LABEL_HASH = 'cp.hash'
 const BYTES_PER_MB = 1024 * 1024
 const STOP_GRACE_SECONDS = 5
+const RESTART_RETRIES = 5
 const HTTP_NOT_FOUND = 404
 const HTTP_NOT_MODIFIED = 304
 
@@ -69,7 +70,9 @@ export function createDockerRuntime(
       Labels: { [LABEL_REF]: spec.ref, [LABEL_ROLE]: spec.role, [LABEL_HASH]: hash },
       HostConfig: {
         Memory: spec.memoryMb * BYTES_PER_MB,
-        RestartPolicy: { Name: 'unless-stopped' },
+        // Not `unless-stopped`: on some engines a container that exits promptly on SIGTERM is
+        // restarted despite `stop`. After a host reboot the reconciler re-ensures containers.
+        RestartPolicy: { Name: 'on-failure', MaximumRetryCount: RESTART_RETRIES },
         ...(options.network ? { NetworkMode: options.network } : {}),
       },
     })

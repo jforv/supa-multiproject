@@ -36,6 +36,8 @@ async function pgHarness(): Promise<Harness> {
   const target = new URL(url ?? '')
   target.pathname = `/${dbName}`
   const { pool, db } = createDb(target.toString())
+  // DROP ... WITH (FORCE) can kill a connection that is still closing; that is not a failure.
+  pool.on('error', () => {})
   await migrate(pool)
   for (const [id, email] of [
     [ada, 'ada@x.io'],
